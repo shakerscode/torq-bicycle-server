@@ -22,6 +22,22 @@ async function run() {
         await client.connect();
         const partsCollection = client.db("torqBicycle").collection("productParts");
         const reviewsCollection = client.db("torqBicycle").collection("reviews");
+        const usersCollection = client.db("torqBicycle").collection("users");
+
+        //placing order
+        //creating user and sending jwt token
+        app.put('/user/:email', async(req,res)=>{
+            const email= req.params.email;
+            const user = req.body;
+            const filter = { email:email };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: user
+              };
+              const result = await usersCollection.updateOne(filter, updateDoc, options);
+              const token = jwt.sign({email: email }, process.env.USER_TOKEN, { expiresIn: '1d' });
+              res.send({result, token})
+        })
 
         //getting single product
         app.get('/product/:id', async(req, res) => {
