@@ -21,6 +21,13 @@ async function run() {
     try{
         await client.connect();
         const partsCollection = client.db("torqBicycle").collection("productParts");
+        const reviewsCollection = client.db("torqBicycle").collection("reviews");
+
+        //getting all reviews
+        app.get('/review', async(req, res)=>{
+            const result = await reviewsCollection.find({}).toArray();
+            res.send(result);
+        })
 
         //getting all products
         app.get('/product', async(req, res)=>{
