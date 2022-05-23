@@ -1,5 +1,5 @@
 const express = require('express')
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const cors = require('cors');
 require('dotenv').config();
@@ -22,6 +22,14 @@ async function run() {
         await client.connect();
         const partsCollection = client.db("torqBicycle").collection("productParts");
         const reviewsCollection = client.db("torqBicycle").collection("reviews");
+
+        //getting single product
+        app.get('/product/:id', async(req, res) => {
+            const id = req.params.id;
+            const query  = {_id: ObjectId(id)}
+            const result = await partsCollection.findOne(query);
+            res.send(result)
+        })
 
         //getting all reviews
         app.get('/review', async(req, res)=>{
