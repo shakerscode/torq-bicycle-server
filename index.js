@@ -12,6 +12,7 @@ app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.olmkj.mongodb.net/?retryWrites=true&w=majority`;
 
+
  const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 
@@ -21,7 +22,7 @@ async function run() {
         await client.connect();
         const partsCollection = client.db("torqBicycle").collection("productParts");
 
-
+        //getting all products
         app.get('/product', async(req, res)=>{
             const result = await partsCollection.find({}).toArray();
             res.send(result);
