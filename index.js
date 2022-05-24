@@ -50,18 +50,18 @@ async function run() {
         })
 
         //updating profile
-        // app.put('/user/:email', async (req, res) => {
-        //     const email = req.params.email;
-        //     const user = req.body;
-        //     const filter = { email: email };
-        //     const options = { upsert: true };
-        //     const updateDoc = {
-        //         $set: user
-        //     };
-        //     const result = await usersCollection.updateOne(filter, updateDoc, options);
-        //     const token = jwt.sign({ email: email }, process.env.USER_TOKEN, { expiresIn: '1d' });
-        //     res.send({result, token})
-        // })
+        app.patch('/user/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = req.body;
+            const filter = { email: email };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: user
+            };
+            const result = await usersCollection.updateOne(filter, updateDoc, options);
+            const token = jwt.sign({ email: email }, process.env.USER_TOKEN, { expiresIn: '1d' });
+            res.send({result, token})
+        })
 
         //posting reviews
         app.post('/reviews', async (req, res) => {
