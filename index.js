@@ -70,11 +70,11 @@ async function run() {
             res.send(result)
         })
 
-        //get one users order not done yet
+        //get one users order
         app.get('/order', async (req, res) => {
             const email = req.query.email;
-            const filter = { email: email };
-            const result = await ordersCollection.find(filter).toArray();
+            const query = { email: email };
+            const result = await ordersCollection.find(query).toArray();
             res.send(result)
         })
 
