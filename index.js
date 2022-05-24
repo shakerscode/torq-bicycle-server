@@ -41,6 +41,13 @@ async function run() {
         const usersCollection = client.db("torqBicycle").collection("users");
         const ordersCollection = client.db("torqBicycle").collection("orders");
 
+        //posting reviews
+        app.post('/reviews', async (req, res) => {
+            const order = req.body;
+            const result = await reviewsCollection.insertOne(order);
+            res.send(result)
+        })
+
         //get one users order not done yet
         app.get('/order', async (req, res) => {
             const email = req.query.email;
