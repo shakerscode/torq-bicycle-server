@@ -44,14 +44,21 @@ async function run() {
         //adding role to users
          app.put('/user/admin/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
-            const filter = { email: email };
-            const updateDoc = {
-                $set: {
-                    role: 'admin'
-                }
-            };
-            const result = await usersCollection.updateOne(filter, updateDoc);
-            res.send(result)
+            const adminRequester = req.decoded.email;
+            const requesterAccount = await usersCollection.findOne({email: adminRequester})
+            if(requesterAccount.role === 'admin'){
+                const filter = { email: email };
+                const updateDoc = {
+                    $set: {
+                        role: 'admin'
+                    }
+                };
+                const result = await usersCollection.updateOne(filter, updateDoc);
+                res.send(result)
+            }else{
+                 res.status(403).send({message: 'Forbidden access'})
+            }
+            
         })
 
 
