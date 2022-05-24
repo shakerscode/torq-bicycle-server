@@ -71,15 +71,21 @@ async function run() {
         })
 
         //get one users order
-        app.get('/order', async (req, res) => {
+        app.get('/order', verifyJWT, async (req, res) => {
             const email = req.query.email;
-            const query = { email: email };
-            const result = await ordersCollection.find(query).toArray();
-            res.send(result)
+            const decodedEmail = req.decoded.email;
+            if(email === decodedEmail){
+                const query = { email: email };
+                const result = await ordersCollection.find(query).toArray();
+                return res.send(result)
+            }else{
+                res.status(403).send({message: 'Forbidden access'})
+            }
+            
         })
 
         //getting all users not done yet
-        app.get('/users', async (req, res) => {
+        app.get('/users', verifyJWT, async (req, res) => {
             const result = await usersCollection.find({}).toArray()
             res.send(result);
         })
