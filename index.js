@@ -41,6 +41,20 @@ async function run() {
         const usersCollection = client.db("torqBicycle").collection("users");
         const ordersCollection = client.db("torqBicycle").collection("orders");
 
+        //adding role to users
+         app.put('/user/admin/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email };
+            const updateDoc = {
+                $set: {
+                    role: 'admin'
+                }
+            };
+            const result = await usersCollection.updateOne(filter, updateDoc);
+            res.send(result)
+        })
+
+
         //getting one single user
         app.get('/user/:email', async (req, res) => {
             const email = req.params.email;
@@ -84,7 +98,7 @@ async function run() {
             
         })
 
-        //getting all users not done yet
+        //getting all users
         app.get('/users', verifyJWT, async (req, res) => {
             const result = await usersCollection.find({}).toArray()
             res.send(result);
