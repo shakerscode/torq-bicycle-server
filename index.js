@@ -41,6 +41,18 @@ async function run() {
         const usersCollection = client.db("torqBicycle").collection("users");
         const ordersCollection = client.db("torqBicycle").collection("orders");
 
+        //getting all orders for admin
+        app.get('/user-orders', verifyJWT, async (req, res) => {
+            const email = req.query.email;
+            const decodedEmail = req.decoded.email;
+            if(email === decodedEmail){
+                const result = await ordersCollection.find({}).toArray();
+                return res.send(result)
+            }else{
+                res.status(403).send({message: 'Forbidden access'})
+            }
+            
+        })
 
         //adding admin product
         app.post('/product', async (req, res) => {
