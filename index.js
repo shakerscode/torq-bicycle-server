@@ -49,6 +49,7 @@ async function run() {
             const result=  await ordersCollection.deleteOne(query);
             res.send(result);
         })
+        
         //getting single admin role
         app.get('/admin/:email', verifyJWT, async(req, res)=>{
             const email = req.params.email;
