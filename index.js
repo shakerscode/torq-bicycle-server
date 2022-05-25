@@ -41,6 +41,14 @@ async function run() {
         const usersCollection = client.db("torqBicycle").collection("users");
         const ordersCollection = client.db("torqBicycle").collection("orders");
 
+
+        //adding admin product
+        app.post('/product', async (req, res) => {
+            const product = req.body;
+            const result = await partsCollection.insertOne(product);
+            res.send(result)
+        })
+
         //getting a single  user
 
         app.get('/web-user/:email', verifyJWT, async(req, res)=>{
@@ -139,8 +147,8 @@ async function run() {
 
         //placing order 
         app.post('/orders', async (req, res) => {
-            const order = req.body;
-            const result = await ordersCollection.insertOne(order);
+            const isOrder = req.body;
+            const result = await ordersCollection.insertOne(isOrder);
             res.send(result)
         })
         //creating user and sending jwt token
