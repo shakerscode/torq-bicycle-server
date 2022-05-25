@@ -41,6 +41,15 @@ async function run() {
         const usersCollection = client.db("torqBicycle").collection("users");
         const ordersCollection = client.db("torqBicycle").collection("orders");
 
+        //getting a single  user
+
+        app.get('/web-user/:email', verifyJWT, async(req, res)=>{
+            const email = req.params.email;
+            const user = await usersCollection.findOne({email: email});
+            const isUser = user.role !== 'admin';
+            res.send({notAdmin: isUser})
+        }) 
+
         //deleting a order
 
         app.delete('/user/:id', async(req, res) =>{
@@ -49,7 +58,7 @@ async function run() {
             const result=  await ordersCollection.deleteOne(query);
             res.send(result);
         })
-        
+
         //getting single admin role
         app.get('/admin/:email', verifyJWT, async(req, res)=>{
             const email = req.params.email;
