@@ -42,6 +42,19 @@ async function run() {
         const usersCollection = client.db("torqBicycle").collection("users");
         const ordersCollection = client.db("torqBicycle").collection("orders");
 
+        //updating status
+        app.patch('/order/updating/:id', verifyJWT, async (req, res) =>{
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    status:true
+                }
+            }
+            const updatingStatus = await ordersCollection.updateOne(filter, updateDoc);
+            res.send(updatingStatus);
+        } )
+
 
         //updating orders after a payment completed
         app.patch('/order/:id', verifyJWT, async (req, res) => {
