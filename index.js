@@ -41,6 +41,15 @@ async function run() {
         const usersCollection = client.db("torqBicycle").collection("users");
         const ordersCollection = client.db("torqBicycle").collection("orders");
 
+        //getting a order inf
+        app.get('/order/:id', verifyJWT, async(req, res) =>{
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const result = await ordersCollection.findOne(query);
+            res.send(result);
+
+        })
+
 
         //deleting a order by admin
 
