@@ -3,6 +3,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const cors = require('cors');
 require('dotenv').config();
+const stripe = require('stripe')(process.env.STRIPE_SECRET);
 const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 5000;
 
@@ -16,15 +17,15 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 
-const verifyJWT = async (req, res, next) =>{
+const verifyJWT = async (req, res, next) => {
     const authorization = req.headers.authorization;
-    if(!authorization){
-        return res.status(401).send({message: 'Unauthorized access'})
+    if (!authorization) {
+        return res.status(401).send({ message: 'Unauthorized access' })
     }
     const authToken = authorization.split(' ')[1];
-    jwt.verify(authToken, process.env.USER_TOKEN, function(err, decoded){
-        if(err){
-            return res.status(403).send({message: 'Forbidden access'})
+    jwt.verify(authToken, process.env.USER_TOKEN, function (err, decoded) {
+        if (err) {
+            return res.status(403).send({ message: 'Forbidden access' })
         }
         req.decoded = decoded;
         next()
@@ -41,10 +42,42 @@ async function run() {
         const usersCollection = client.db("torqBicycle").collection("users");
         const ordersCollection = client.db("torqBicycle").collection("orders");
 
-        //getting a order inf
-        app.get('/order/:id', verifyJWT, async(req, res) =>{
+
+        //updating orders after a payment completed
+        app.patch('/order/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
-            const query = {_id: ObjectId(id)};
+            const payment = req.body;
+            const filter = { _id: ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    paymentStatus:"paid",
+                    transactionId: payment.transactionId
+                }
+            }
+            const updatingOrder = await ordersCollection.updateOne(filter, updateDoc);
+            res.send(updatingOrder);
+        })
+
+
+        //payment intent api of user
+        app.post('/create-payment-intent', verifyJWT, async (req, res) => {
+            const paymentData = req.body;
+            const price = paymentData.totalPrice;
+            const amount = price * 100;
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ["card"]
+            });
+            res.send({ clientSecret: paymentIntent.client_secret });
+        })
+
+
+
+        //getting a order inf
+        app.get('/order/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
             const result = await ordersCollection.findOne(query);
             res.send(result);
 
@@ -53,19 +86,19 @@ async function run() {
 
         //deleting a order by admin
 
-        app.delete('/admin/order/:id',verifyJWT, async(req, res) =>{
+        app.delete('/admin/order/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
-            const query = {_id: ObjectId(id)};
-            const result=  await ordersCollection.deleteOne(query);
+            const query = { _id: ObjectId(id) };
+            const result = await ordersCollection.deleteOne(query);
             res.send(result);
         })
 
         //deleting a product part by admin
 
-        app.delete('/admin/:id',verifyJWT, async(req, res) =>{
+        app.delete('/admin/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
-            const query = {_id: ObjectId(id)};
-            const result=  await partsCollection.deleteOne(query);
+            const query = { _id: ObjectId(id) };
+            const result = await partsCollection.deleteOne(query);
             res.send(result);
         })
 
@@ -73,13 +106,13 @@ async function run() {
         app.get('/user-orders', verifyJWT, async (req, res) => {
             const email = req.query.email;
             const decodedEmail = req.decoded.email;
-            if(email === decodedEmail){
+            if (email === decodedEmail) {
                 const result = await ordersCollection.find({}).toArray();
                 return res.send(result)
-            }else{
-                res.status(403).send({message: 'Forbidden access'})
+            } else {
+                res.status(403).send({ message: 'Forbidden access' })
             }
-            
+
         })
 
         //adding admin product
@@ -91,36 +124,36 @@ async function run() {
 
         //getting a single  user
 
-        app.get('/web-user/:email', verifyJWT, async(req, res)=>{
+        app.get('/web-user/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
-            const user = await usersCollection.findOne({email: email});
+            const user = await usersCollection.findOne({ email: email });
             const isUser = user.role !== 'admin';
-            res.send({notAdmin: isUser})
-        }) 
+            res.send({ notAdmin: isUser })
+        })
 
         //deleting a order
 
-        app.delete('/user/:id', async(req, res) =>{
+        app.delete('/user/:id', async (req, res) => {
             const id = req.params.id;
-            const query = {_id: ObjectId(id)};
-            const result=  await ordersCollection.deleteOne(query);
+            const query = { _id: ObjectId(id) };
+            const result = await ordersCollection.deleteOne(query);
             res.send(result);
         })
 
         //getting single admin role
-        app.get('/admin/:email', verifyJWT, async(req, res)=>{
+        app.get('/admin/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
-            const isUser = await usersCollection.findOne({email: email});
+            const isUser = await usersCollection.findOne({ email: email });
             const isAdmin = isUser.role === 'admin';
-            res.send({admin: isAdmin})
-        }) 
+            res.send({ admin: isAdmin })
+        })
 
         //adding role to users
-         app.put('/user/admin/:email', verifyJWT, async (req, res) => {
+        app.put('/user/admin/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
             const adminRequester = req.decoded.email;
-            const requesterAccount = await usersCollection.findOne({email: adminRequester})
-            if(requesterAccount.role === 'admin'){
+            const requesterAccount = await usersCollection.findOne({ email: adminRequester })
+            if (requesterAccount.role === 'admin') {
                 const filter = { email: email };
                 const updateDoc = {
                     $set: {
@@ -129,10 +162,10 @@ async function run() {
                 };
                 const result = await usersCollection.updateOne(filter, updateDoc);
                 res.send(result)
-            }else{
-                 res.status(403).send({message: 'Forbidden access'})
+            } else {
+                res.status(403).send({ message: 'Forbidden access' })
             }
-            
+
         })
 
 
@@ -155,7 +188,7 @@ async function run() {
             };
             const result = await usersCollection.updateOne(filter, updateDoc, options);
             const token = jwt.sign({ email: email }, process.env.USER_TOKEN, { expiresIn: '1d' });
-            res.send({result, token})
+            res.send({ result, token })
         })
 
         //posting reviews
@@ -169,14 +202,14 @@ async function run() {
         app.get('/order', verifyJWT, async (req, res) => {
             const email = req.query.email;
             const decodedEmail = req.decoded.email;
-            if(email === decodedEmail){
+            if (email === decodedEmail) {
                 const query = { email: email };
                 const result = await ordersCollection.find(query).toArray();
                 return res.send(result)
-            }else{
-                res.status(403).send({message: 'Forbidden access'})
+            } else {
+                res.status(403).send({ message: 'Forbidden access' })
             }
-            
+
         })
 
         //getting all users
