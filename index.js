@@ -75,7 +75,7 @@ async function run() {
         app.get('/user' , async (req, res) => {
             const phone = req.query.phone; 
             if (phone) {
-                const result = await ummahServiceUsers.findOne({ phone: phone }).toArray();
+                const result = await ummahServiceUsers.find({ phone: phone }).toArray();
                 console.log(result);
                 return res.send(result)
             } else {
