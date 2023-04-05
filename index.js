@@ -41,6 +41,51 @@ async function run() {
         const reviewsCollection = client.db("torqBicycle").collection("reviews");
         const usersCollection = client.db("torqBicycle").collection("users");
         const ordersCollection = client.db("torqBicycle").collection("orders");
+        //ummahservice
+        const ummahServiceOc = client.db("ummahServie").collection("allOrders");
+        const ummahServiceUsers = client.db("ummahServie").collection("allUsers");
+
+
+        //ummahService
+         //placing order 
+         app.post('/create-orders', async (req, res) => {
+            const isOrder = req.body;
+            const result = await ummahServiceOc.insertOne(isOrder);
+            res.send(result)
+        })
+        //posting users
+         app.post('/create-user', async (req, res) => {
+            const isUser = req.body;
+            const result = await ummahServiceUsers.insertOne(isUser);
+            res.send(result)
+        })
+
+        //getting single user order data
+        app.get('/user-orders' , async (req, res) => {
+            const phone = req.query.phone; 
+            if (phone) {
+                const result = await ummahServiceOc.find({ phone: phone }).toArray(); 
+                return res.send(result)
+            } else {
+                res.status(403).send({ message: 'Forbidden access' })
+            }
+
+        })
+        //getting single user data
+        app.get('/user' , async (req, res) => {
+            const phone = req.query.phone; 
+            if (phone) {
+                const result = await ummahServiceUsers.findOne({ phone: phone }).toArray();
+                console.log(result);
+                return res.send(result)
+            } else {
+                res.status(403).send({ message: 'Forbidden access' })
+            }
+
+        })
+
+
+
 
         //updating status
         app.patch('/order/updating/:id', verifyJWT, async (req, res) =>{
@@ -253,7 +298,7 @@ async function run() {
         })
 
         //getting single product
-        app.get('/product/:id', async (req, res) => {
+        app.get('/product/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) }
             const result = await partsCollection.findOne(query);
@@ -261,13 +306,13 @@ async function run() {
         })
 
         //getting all reviews
-        app.get('/review', async (req, res) => {
+        app.get('/review', verifyJWT, async (req, res) => {
             const result = await reviewsCollection.find({}).toArray();
             res.send(result);
         })
 
         //getting all products
-        app.get('/product', async (req, res) => {
+        app.get('/product', verifyJWT, async (req, res) => {
             const result = await partsCollection.find({}).toArray();
             res.send(result);
         })
