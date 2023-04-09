@@ -40,6 +40,8 @@ async function run() {
     const reviewsCollection = client.db("torqBicycle").collection("reviews");
     const usersCollection = client.db("torqBicycle").collection("users");
     const ordersCollection = client.db("torqBicycle").collection("orders");
+
+
     //ummahservice
     const ummahServiceOc = client.db("ummahServie").collection("allOrders");
     const ummahServiceUsers = client.db("ummahServie").collection("allUsers");
@@ -110,7 +112,7 @@ async function run() {
     //getting single user data
     app.get("/user", async (req, res) => {
       const phone = req.query.phone;
-      console.log(phone);
+      
       if (phone) {
         const result = await ummahServiceUsers.findOne({ phone: phone });
         console.log(result);
@@ -120,6 +122,48 @@ async function run() {
       }
     });
 
+    //delete a product
+    app.delete("/product/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await ummahServiceProducts.deleteOne(query);
+      res.send(result);
+    });
+
+     //get all orders
+     app.get("/ummah-order", async (req, res) => {
+      const result = await ummahServiceOc.find({}).toArray();
+      return res.send(result);
+    });
+
+    //updating order status
+    app.put("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status: true,
+        },
+      };
+      const updatingStatus = await ummahServiceOc.updateOne(
+        filter,
+        updateDoc
+      );
+      console.log(updatingStatus);
+      res.send(updatingStatus);
+    });
+
+
+
+
+
+
+
+
+
+
+
+    //torq
     //updating status
     app.patch("/order/updating/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
