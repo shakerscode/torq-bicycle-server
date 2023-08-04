@@ -41,128 +41,6 @@ async function run() {
     const usersCollection = client.db("torqBicycle").collection("users");
     const ordersCollection = client.db("torqBicycle").collection("orders");
 
-
-    //ummahservice
-    const ummahServiceOc = client.db("ummahServie").collection("allOrders");
-    const ummahServiceUsers = client.db("ummahServie").collection("allUsers");
-    const ummahServiceProducts = client
-      .db("ummahServie")
-      .collection("allProducts");
-
-    //ummahService
-    //create product
-    app.post("/create-products", async (req, res) => {
-      const isProducts = req.body;
-      const result = await ummahServiceProducts.insertOne(isProducts);
-      res.send(result);
-    });
-
-    //get all products
-    app.get("/ummah-products", async (req, res) => {
-      const result = await ummahServiceProducts.find({}).toArray();
-      return res.send(result);
-    });
-    //placing order
-    app.post("/create-orders", async (req, res) => {
-      const isOrder = req.body;
-      const result = await ummahServiceOc.insertOne(isOrder);
-      res.send(result);
-    });
-    //posting users
-    // app.post("/create-user", async (req, res) => {
-    //   const isUser = req.body;
-    //   const phoneNumber = isUser.phone;
-    //   const existingUser = await ummahServiceUsers.findOne({
-    //     uPhone: phoneNumber,
-    //   });
-    //   if (existingUser) {
-    //     return;
-    //   }else{
-    //     const result = await ummahServiceUsers.insertOne(isUser);
-    //     return res.send(result);
-    //   }
-
-    // });
-
-    app.post("/create-user", async (req, res) => {
-      const isUser = req.body;
-      const phoneNumber = isUser.phone;
-      const existingUser = await ummahServiceUsers.findOne({
-        phone: phoneNumber,
-      });
-
-      // console.log(existingUser);
-      if (existingUser) {
-        return res.status(409).send({ message: "User already exists" });
-      } else {
-        const result = await ummahServiceUsers.insertOne(isUser);
-        return res.send(result);
-      }
-    });
-    //getting single user order data
-    app.get("/user-orders", async (req, res) => {
-      const phone = req.query.phone;
-      if (phone) {
-        const result = await ummahServiceOc.find({ phone: phone }).toArray();
-        return res.send(result);
-      } else {
-        res.status(403).send({ message: "Forbidden access" });
-      }
-    });
-    //getting single user data
-    app.get("/user", async (req, res) => {
-      const phone = req.query.phone;
-      
-      if (phone) {
-        const result = await ummahServiceUsers.findOne({ phone: phone });
-        console.log(result);
-        return res.send(result);
-      } else {
-        res.status(403).send({ message: "Forbidden access" });
-      }
-    });
-
-    //delete a product
-    app.delete("/product/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: ObjectId(id) };
-      const result = await ummahServiceProducts.deleteOne(query);
-      res.send(result);
-    });
-
-     //get all orders
-     app.get("/ummah-order", async (req, res) => {
-      const result = await ummahServiceOc.find({}).toArray();
-      return res.send(result);
-    });
-
-    //updating order status
-    app.put("/order/:id", async (req, res) => {
-      const id = req.params.id;
-      const filter = { _id: ObjectId(id) };
-      const updateDoc = {
-        $set: {
-          status: true,
-        },
-      };
-      const updatingStatus = await ummahServiceOc.updateOne(
-        filter,
-        updateDoc
-      );
-      console.log(updatingStatus);
-      res.send(updatingStatus);
-    });
-
-
-
-
-
-
-
-
-
-
-
     //torq
     //updating status
     app.patch("/order/updating/:id", verifyJWT, async (req, res) => {
@@ -338,10 +216,10 @@ async function run() {
     //get one users order
     app.get("/order", verifyJWT, async (req, res) => {
       const email = req.query.email;
-      const decodedEmail = req.decoded.email;
+      const decodedEmail = req.decoded.email; 
       if (email === decodedEmail) {
         const query = { email: email };
-        const result = await ordersCollection.find(query).toArray();
+        const result = await ordersCollection.find(query).toArray(); 
         return res.send(result);
       } else {
         res.status(403).send({ message: "Forbidden access" });
@@ -376,13 +254,12 @@ async function run() {
       );
       const token = jwt.sign({ email: email }, process.env.USER_TOKEN, {
         expiresIn: "1d",
-      });
-      console.log(token);
+      }); 
       res.send({ result, token });
     });
 
     //getting single product
-    app.get("/product/:id", verifyJWT, async (req, res) => {
+    app.get("/product/:id",   async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await partsCollection.findOne(query);
@@ -390,13 +267,13 @@ async function run() {
     });
 
     //getting all reviews
-    app.get("/review", verifyJWT, async (req, res) => {
+    app.get("/review",  async (req, res) => {
       const result = await reviewsCollection.find({}).toArray();
       res.send(result);
     });
 
     //getting all products
-    app.get("/product", verifyJWT, async (req, res) => {
+    app.get("/product", async (req, res) => {
       const result = await partsCollection.find({}).toArray();
       res.send(result);
     });
